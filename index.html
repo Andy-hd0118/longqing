@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信息发布平台 - 用户端</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/uiverse-buttons.css">
+</head>
+<body>
+    <!-- Uiverse.io 午夜星空背景 -->
+    <div class="midnight-sky-background">
+        <div class="sky-canvas"></div>
+        <div class="stars stars-1"></div>
+        <div class="stars stars-2"></div>
+        <div class="stars stars-3"></div>
+        <div class="meteor m1"></div>
+        <div class="meteor m2"></div>
+        <div class="meteor m3"></div>
+        <div class="moon"></div>
+    </div>
+
+    <header>
+        <nav class="uiverse-nav">
+            <button class="uiverse-nav-btn active" onclick="showSection('calculator')">
+                收益率
+            </button>
+            <button class="uiverse-nav-btn" onclick="showSection('announcements')">
+                公告
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- 公告中心（只读） -->
+        <section id="announcements" class="section">
+            <div class="container">
+                <h2>最新公告</h2>
+                <div class="announcements-list">
+                    <div id="announcements-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据计算器 -->
+        <section id="calculator" class="section active">
+            <div class="container">
+                <h2>宠物收益率计算器</h2>
+                
+                <!-- 市场数据展示区 -->
+                <div class="market-data-panel">
+                    <div class="market-data-header">
+                        <h3>当前市场数据</h3>
+                    </div>
+                    <div id="market-data-display" class="market-data-display">
+                        <div class="market-data-item">
+                            <div class="market-data-info">
+                                <div class="market-data-label">金杯最低价</div>
+                                <div class="market-data-value" id="display-gold-cup-price">--</div>
+                                <div class="market-data-unit">元</div>
+                            </div>
+                        </div>
+                        <div class="market-data-item">
+                            <div class="market-data-info">
+                                <div class="market-data-label">宠物最低价</div>
+                                <div class="market-data-value" id="display-pet-price">--</div>
+                                <div class="market-data-unit">金</div>
+                            </div>
+                        </div>
+                        <div class="market-data-item">
+                            <div class="market-data-info">
+                                <div class="market-data-label">1金杯兑换灵石</div>
+                                <div class="market-data-value" id="display-gold-cup-exchange">--</div>
+                                <div class="market-data-unit">灵石</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pet-yield-calculator">
+                    <div class="yield-input-group">
+                        <label class="label-with-btn">
+                            <span>宠物本体价格（元）</span>
+                            <button class="clear-btn-inline uiverse-btn uiverse-btn-sm" onclick="clearAllInputs()">清空</button>
+                        </label>
+                        <input type="number" id="pet-price" placeholder="输入宠物价格" step="0.01">
+                    </div>
+
+                    <div class="yield-input-group">
+                        <label>1金杯可兑换灵石数量</label>
+                        <input type="number" id="gold-cup-exchange" placeholder="例如：1000" step="1">
+                    </div>
+
+                    <div class="yield-input-group">
+                        <label>金杯单价（元）</label>
+                        <input type="number" id="gold-cup-price" placeholder="例如：10" step="0.01">
+                    </div>
+
+                    <div class="yield-mode-selector">
+                        <label>选择计算模式</label>
+                        <div class="mode-options">
+                            <label class="mode-option">
+                                <input type="radio" name="yield-mode" value="rental" checked onchange="updateYieldInputs()">
+                                <div class="btn cube">
+                                    <div class="bg-top"><div class="bg-inner"></div></div>
+                                    <div class="bg-right"><div class="bg-inner"></div></div>
+                                    <div class="bg"><div class="bg-inner"></div></div>
+                                    <span class="text">出租模式</span>
+                                </div>
+                            </label>
+                            <label class="mode-option">
+                                <input type="radio" name="yield-mode" value="convoy" onchange="updateYieldInputs()">
+                                <div class="btn cube">
+                                    <div class="bg-top"><div class="bg-inner"></div></div>
+                                    <div class="bg-right"><div class="bg-inner"></div></div>
+                                    <div class="bg"><div class="bg-inner"></div></div>
+                                    <span class="text">发车模式</span>
+                                </div>
+                            </label>
+                            <label class="mode-option">
+                                <input type="radio" name="yield-mode" value="pvp" onchange="updateYieldInputs()">
+                                <div class="btn cube">
+                                    <div class="bg-top"><div class="bg-inner"></div></div>
+                                    <div class="bg-right"><div class="bg-inner"></div></div>
+                                    <div class="bg"><div class="bg-inner"></div></div>
+                                    <span class="text">PVP模式</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="rental-inputs" class="mode-specific-inputs">
+                        <div class="yield-input-group">
+                            <label>出租收益灵石数量</label>
+                            <input type="number" id="rental-income" placeholder="输入出租获得的灵石数量" step="1">
+                        </div>
+                    </div>
+
+                    <div id="convoy-inputs" class="mode-specific-inputs" style="display: none;">
+                        <div class="yield-input-group">
+                            <label>每只宠物预计一天发车灵石收益</label>
+                            <input type="number" id="convoy-income" placeholder="输入每天发车的灵石收益" step="1">
+                        </div>
+                    </div>
+
+                    <div id="pvp-inputs" class="mode-specific-inputs" style="display: none;">
+                        <div class="yield-input-group">
+                            <label>掉落的金杯数</label>
+                            <input type="number" id="pvp-cups" placeholder="输入掉落的金杯数量" step="0.01">
+                            <div class="input-tip">一只宠物每天恢复4点能量，预计一天掉落金杯数：0.45</div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="calculate-yield-btn uiverse-btn uiverse-btn-full uiverse-btn-lg" onclick="calculatePetYield()">计算收益率</button>
+                    </div>
+
+                    <div id="yield-result" class="yield-result" style="display: none;">
+                        <div class="result-header">
+                            <h4>计算结果</h4>
+                            <div class="result-badge" id="yield-badge"></div>
+                        </div>
+                        <div class="result-content">
+                            <div class="result-item">
+                                <span class="result-label">收益率</span>
+                                <span class="result-value" id="yield-percentage">0%</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">计算公式</span>
+                                <span class="result-formula" id="yield-formula"></span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">回本天数</span>
+                                <span class="result-value" id="payback-days">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 开发者数据（只读） -->
+        <section id="developer-data" class="section">
+            <div class="container">
+                <h2>开发者数据中心</h2>
+                
+                <div class="data-filters">
+                    <input type="text" id="search-data" placeholder="搜索数据..." onkeyup="filterData()">
+                    <select id="filter-category" onchange="filterData()">
+                        <option value="">全部分类</option>
+                    </select>
+                    <select id="filter-type" onchange="filterData()">
+                        <option value="">全部类型</option>
+                        <option value="text">文本</option>
+                        <option value="number">数字</option>
+                        <option value="link">链接</option>
+                    </select>
+                </div>
+
+                <div class="data-grid" id="data-container"></div>
+            </div>
+        </section>
+    </main>
+
+
+    <script src="js/app.js"></script>
+</body>
+</html>
