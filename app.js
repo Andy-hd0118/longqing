@@ -8,15 +8,15 @@ function showSection(sectionId) {
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
     });
-    
+
     // 移除所有导航按钮的active状态
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    
+
     // 显示选中的section
     document.getElementById(sectionId).classList.add('active');
-    
+
     // 添加active状态到对应的按钮
     event.target.classList.add('active');
 }
@@ -26,12 +26,12 @@ function addAnnouncement() {
     const title = document.getElementById('announcement-title').value.trim();
     const content = document.getElementById('announcement-content').value.trim();
     const priority = document.getElementById('announcement-priority').value;
-    
+
     if (!title || !content) {
         alert('请填写公告标题和内容！');
         return;
     }
-    
+
     const announcement = {
         id: Date.now(),
         title: title,
@@ -39,16 +39,16 @@ function addAnnouncement() {
         priority: priority,
         time: new Date().toLocaleString('zh-CN')
     };
-    
+
     announcements.unshift(announcement);
     saveAnnouncements();
     renderAnnouncements();
-    
+
     // 清空表单
     document.getElementById('announcement-title').value = '';
     document.getElementById('announcement-content').value = '';
     document.getElementById('announcement-priority').value = 'normal';
-    
+
     alert('公告发布成功！');
 }
 
@@ -66,12 +66,12 @@ function saveAnnouncements() {
 
 function renderAnnouncements() {
     const container = document.getElementById('announcements-container');
-    
+
     if (announcements.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">暂无公告</p>';
         return;
     }
-    
+
     container.innerHTML = announcements.map(announcement => `
         <div class="announcement-item ${announcement.priority}">
             <div class="announcement-header">
@@ -103,18 +103,18 @@ function showCalcTab(tabName) {
     document.querySelectorAll('.calc-panel').forEach(panel => {
         panel.classList.remove('active');
     });
-    
+
     // 移除所有标签的active状态
     document.querySelectorAll('.calc-tab').forEach(tab => {
         tab.classList.remove('active');
     });
-    
+
     // 显示选中的面板
     document.getElementById(tabName + '-calc').classList.add('active');
-    
+
     // 添加active状态到对应的标签
     event.target.classList.add('active');
-    
+
     // 如果是单位转换器，初始化选项
     if (tabName === 'converter') {
         updateConverter();
@@ -145,22 +145,22 @@ function calculate() {
 // ==================== 统计分析功能 ====================
 function calculateStats() {
     const dataStr = document.getElementById('stats-data').value.trim();
-    
+
     if (!dataStr) {
         alert('请输入数据！');
         return;
     }
-    
+
     // 解析数据（支持逗号和换行分隔）
     const data = dataStr.split(/[,，\n]/)
         .map(item => parseFloat(item.trim()))
         .filter(item => !isNaN(item));
-    
+
     if (data.length === 0) {
         alert('没有有效的数字数据！');
         return;
     }
-    
+
     // 计算统计值
     const count = data.length;
     const sum = data.reduce((a, b) => a + b, 0);
@@ -168,17 +168,17 @@ function calculateStats() {
     const min = Math.min(...data);
     const max = Math.max(...data);
     const range = max - min;
-    
+
     // 计算中位数
     const sorted = [...data].sort((a, b) => a - b);
-    const median = count % 2 === 0 
-        ? (sorted[count / 2 - 1] + sorted[count / 2]) / 2 
+    const median = count % 2 === 0
+        ? (sorted[count / 2 - 1] + sorted[count / 2]) / 2
         : sorted[Math.floor(count / 2)];
-    
+
     // 计算方差和标准差
     const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / count;
     const stdDev = Math.sqrt(variance);
-    
+
     // 显示结果
     const resultsDiv = document.getElementById('stats-results');
     resultsDiv.innerHTML = `
@@ -238,14 +238,14 @@ function updateConverter() {
     const type = document.getElementById('convert-type').value;
     const fromSelect = document.getElementById('convert-from');
     const toSelect = document.getElementById('convert-to');
-    
+
     const units = conversionUnits[type].units;
-    
-    fromSelect.innerHTML = units.map((unit, i) => 
+
+    fromSelect.innerHTML = units.map((unit, i) =>
         `<option value="${i}">${unit}</option>`
     ).join('');
-    
-    toSelect.innerHTML = units.map((unit, i) => 
+
+    toSelect.innerHTML = units.map((unit, i) =>
         `<option value="${i}" ${i === 1 ? 'selected' : ''}>${unit}</option>`
     ).join('');
 }
@@ -255,14 +255,14 @@ function convert() {
     const value = parseFloat(document.getElementById('convert-value').value);
     const fromIndex = parseInt(document.getElementById('convert-from').value);
     const toIndex = parseInt(document.getElementById('convert-to').value);
-    
+
     if (isNaN(value)) {
         alert('请输入有效的数值！');
         return;
     }
-    
+
     let result;
-    
+
     if (type === 'temperature') {
         result = convertTemperature(value, fromIndex, toIndex);
     } else {
@@ -271,7 +271,7 @@ function convert() {
         const baseValue = value * config.toBase[fromIndex];
         result = baseValue / config.toBase[toIndex];
     }
-    
+
     document.getElementById('convert-result').value = result.toFixed(4);
 }
 
@@ -285,7 +285,7 @@ function convertTemperature(value, from, to) {
     } else { // 开尔文
         celsius = value - 273.15;
     }
-    
+
     // 从摄氏度转换为目标单位
     if (to === 0) { // 摄氏度
         return celsius;
@@ -303,12 +303,12 @@ function addDeveloperData() {
     const type = document.getElementById('data-type').value;
     const value = document.getElementById('data-value').value.trim();
     const description = document.getElementById('data-description').value.trim();
-    
+
     if (!name || !category || !value) {
         alert('请填写数据名称、分类和值！');
         return;
     }
-    
+
     const data = {
         id: Date.now(),
         name: name,
@@ -318,19 +318,19 @@ function addDeveloperData() {
         description: description,
         time: new Date().toLocaleString('zh-CN')
     };
-    
+
     developerData.unshift(data);
     saveDeveloperData();
     renderDeveloperData();
     updateCategoryFilter();
-    
+
     // 清空表单
     document.getElementById('data-name').value = '';
     document.getElementById('data-category').value = '';
     document.getElementById('data-type').value = 'text';
     document.getElementById('data-value').value = '';
     document.getElementById('data-description').value = '';
-    
+
     alert('数据添加成功！');
 }
 
@@ -350,12 +350,12 @@ function saveDeveloperData() {
 function renderDeveloperData(dataToRender = null) {
     const container = document.getElementById('data-container');
     const data = dataToRender || developerData;
-    
+
     if (data.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px; grid-column: 1/-1;">暂无数据</p>';
         return;
     }
-    
+
     container.innerHTML = data.map(item => `
         <div class="data-card">
             <div class="data-card-header">
@@ -393,7 +393,7 @@ function getTypeText(type) {
 function updateCategoryFilter() {
     const categories = [...new Set(developerData.map(d => d.category))];
     const filterSelect = document.getElementById('filter-category');
-    
+
     filterSelect.innerHTML = '<option value="">全部分类</option>' +
         categories.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('');
 }
@@ -402,26 +402,26 @@ function filterData() {
     const searchTerm = document.getElementById('search-data').value.toLowerCase();
     const categoryFilter = document.getElementById('filter-category').value;
     const typeFilter = document.getElementById('filter-type').value;
-    
+
     let filtered = developerData;
-    
+
     if (searchTerm) {
-        filtered = filtered.filter(item => 
+        filtered = filtered.filter(item =>
             item.name.toLowerCase().includes(searchTerm) ||
             item.category.toLowerCase().includes(searchTerm) ||
             item.value.toLowerCase().includes(searchTerm) ||
             (item.description && item.description.toLowerCase().includes(searchTerm))
         );
     }
-    
+
     if (categoryFilter) {
         filtered = filtered.filter(item => item.category === categoryFilter);
     }
-    
+
     if (typeFilter) {
         filtered = filtered.filter(item => item.type === typeFilter);
     }
-    
+
     renderDeveloperData(filtered);
 }
 
@@ -446,12 +446,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // 更新模式专属输入框
 function updateYieldInputs() {
     const mode = document.querySelector('input[name="yield-mode"]:checked').value;
-    
+
     // 隐藏所有模式专属输入框
     document.getElementById('rental-inputs').style.display = 'none';
     document.getElementById('convoy-inputs').style.display = 'none';
     document.getElementById('pvp-inputs').style.display = 'none';
-    
+
     // 显示选中模式的输入框
     if (mode === 'rental') {
         document.getElementById('rental-inputs').style.display = 'block';
@@ -468,63 +468,63 @@ function calculatePetYield() {
     const petPrice = parseFloat(document.getElementById('pet-price').value);
     const goldCupExchange = parseFloat(document.getElementById('gold-cup-exchange').value);
     const goldCupPrice = parseFloat(document.getElementById('gold-cup-price').value);
-    
+
     // 验证基础数据
     if (!petPrice || !goldCupExchange || !goldCupPrice) {
         alert('请填写宠物价格、金杯兑换灵石数量和金杯单价！');
         return;
     }
-    
+
     if (petPrice <= 0 || goldCupExchange <= 0 || goldCupPrice <= 0) {
         alert('所有数值必须大于0！');
         return;
     }
-    
+
     const mode = document.querySelector('input[name="yield-mode"]:checked').value;
     let yieldRate = 0;
     let formula = '';
     let paybackDays = 0;
-    
+
     if (mode === 'rental') {
         // 出租模式：收益率 = 出租收益灵石数量 / 1金杯可兑换灵石数量 × 金杯价格 / 宠物本体价格
         const rentalIncome = parseFloat(document.getElementById('rental-income').value);
-        
+
         if (!rentalIncome || rentalIncome <= 0) {
             alert('请输入有效的出租收益灵石数量！');
             return;
         }
-        
+
         yieldRate = (rentalIncome / goldCupExchange * goldCupPrice) / petPrice;
         formula = `出租收益灵石数量 ÷ 1金杯可兑换灵石数量 × 金杯价格 ÷ 宠物本体价格<br>${rentalIncome} ÷ ${goldCupExchange} × ${goldCupPrice} ÷ ${petPrice}`;
         paybackDays = 1 / yieldRate;
-        
+
     } else if (mode === 'convoy') {
         // 发车模式：收益率 = 每只宠物预计一天发车灵石收益 / 1金杯可兑换灵石数量 × 金杯价格 / 宠物本体价格
         const convoyIncome = parseFloat(document.getElementById('convoy-income').value);
-        
+
         if (!convoyIncome || convoyIncome <= 0) {
             alert('请输入有效的每天发车灵石收益！');
             return;
         }
-        
+
         yieldRate = (convoyIncome / goldCupExchange * goldCupPrice) / petPrice;
         formula = `每只宠物预计一天发车灵石收益 ÷ 1金杯可兑换灵石数量 × 金杯价格 ÷ 宠物本体价格<br>${convoyIncome} ÷ ${goldCupExchange} × ${goldCupPrice} ÷ ${petPrice}`;
         paybackDays = 1 / yieldRate;
-        
+
     } else if (mode === 'pvp') {
         // PVP 模式：收益率 = 每日获取金杯数量 × 金杯价格 / 成本
         const pvpCups = parseFloat(document.getElementById('pvp-cups').value);
-            
+
         if (!pvpCups || pvpCups < 0) {
             alert('请输入有效的掉落金杯数！');
             return;
         }
-            
+
         yieldRate = (pvpCups * goldCupPrice) / petPrice;
         formula = `每日获取金杯数 × 金杯价格 ÷ 成本<br>${pvpCups} × ${goldCupPrice} ÷ ${petPrice}`;
         paybackDays = yieldRate > 0 ? 1 / yieldRate : Infinity;
     }
-    
+
     // 显示结果
     displayYieldResult(yieldRate, formula, paybackDays, mode);
 }
@@ -536,27 +536,27 @@ function displayYieldResult(yieldRate, formula, paybackDays, mode) {
     const formulaElement = document.getElementById('yield-formula');
     const paybackDaysElement = document.getElementById('payback-days');
     const badgeElement = document.getElementById('yield-badge');
-    
+
     // 转换为百分比
     const percentage = (yieldRate * 100).toFixed(2);
-    
+
     // 设置收益率显示
     percentageElement.textContent = percentage + '%';
-    
+
     // 设置公式显示
     formulaElement.innerHTML = formula;
-    
+
     // 设置回本天数
     if (paybackDays === Infinity || paybackDays <= 0) {
         paybackDaysElement.textContent = '无法回本';
     } else {
         paybackDaysElement.textContent = paybackDays.toFixed(1) + ' 天';
     }
-    
+
     // 设置评级徽章
     let badgeText = '';
     let badgeClass = '';
-    
+
     if (yieldRate > 0.02) {
         badgeText = '优秀';
         badgeClass = 'excellent';
@@ -567,13 +567,13 @@ function displayYieldResult(yieldRate, formula, paybackDays, mode) {
         badgeText = '一般';
         badgeClass = 'normal';
     }
-    
+
     badgeElement.textContent = badgeText;
     badgeElement.className = 'result-badge ' + badgeClass;
-    
+
     // 显示结果区域
     resultDiv.style.display = 'block';
-    
+
     // 滚动到结果区域
     resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -584,12 +584,12 @@ function clearAllInputs() {
     document.getElementById('pet-price').value = '';
     document.getElementById('gold-cup-exchange').value = '';
     document.getElementById('gold-cup-price').value = '';
-    
+
     // 清空模式特定输入字段
     document.getElementById('rental-income').value = '';
     document.getElementById('convoy-income').value = '';
     document.getElementById('pvp-cups').value = '';
-    
+
     // 隐藏结果区域
     document.getElementById('yield-result').style.display = 'none';
 }
@@ -599,11 +599,11 @@ function clearAllInputs() {
 // 加载市场数据
 function loadMarketData() {
     const marketData = JSON.parse(localStorage.getItem('marketData')) || {};
-    
+
     const goldCupPrice = marketData.goldCupPrice || '--';
     const petPrice = marketData.petPrice || '--';
     const goldCupExchange = marketData.goldCupExchange || '--';
-    
+
     document.getElementById('display-gold-cup-price').textContent = goldCupPrice;
     document.getElementById('display-pet-price').textContent = petPrice;
     document.getElementById('display-gold-cup-exchange').textContent = goldCupExchange;
@@ -613,12 +613,12 @@ function loadMarketData() {
 function toggleMarketDataEdit() {
     const displayDiv = document.getElementById('market-data-display');
     const editDiv = document.getElementById('market-data-edit');
-    
+
     if (editDiv.style.display === 'none') {
         // 显示编辑表单
         displayDiv.style.display = 'none';
         editDiv.style.display = 'block';
-        
+
         // 填充当前数据
         const marketData = JSON.parse(localStorage.getItem('marketData')) || {};
         document.getElementById('market-gold-cup-price').value = marketData.goldCupPrice || '';
@@ -636,26 +636,26 @@ function saveMarketData() {
     const goldCupPrice = document.getElementById('market-gold-cup-price').value.trim();
     const petPrice = document.getElementById('market-pet-price').value.trim();
     const goldCupExchange = document.getElementById('market-gold-cup-exchange').value.trim();
-    
+
     if (!goldCupPrice || !petPrice || !goldCupExchange) {
         alert('请填写所有市场数据！');
         return;
     }
-    
+
     const marketData = {
         goldCupPrice: parseFloat(goldCupPrice),
         petPrice: parseFloat(petPrice),
         goldCupExchange: parseInt(goldCupExchange),
         updateTime: new Date().toLocaleString('zh-CN')
     };
-    
+
     localStorage.setItem('marketData', JSON.stringify(marketData));
-    
+
     // 更新显示
     loadMarketData();
-    
+
     // 隐藏编辑表单
     toggleMarketDataEdit();
-    
+
     alert('市场数据保存成功！');
 }
