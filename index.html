@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>信息发布平台 - 用户端</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="uiverse-buttons.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/uiverse-buttons.css">
 </head>
 <body>
 <!-- Uiverse.io 午夜星空背景 -->
@@ -25,8 +25,9 @@
         <button class="uiverse-nav-btn active" onclick="showSection('calculator')">
             收益率
         </button>
-        <button class="uiverse-nav-btn" onclick="showSection('announcements')">
-            公告
+        <button class="uiverse-nav-btn" onclick="showSection('announcements')" id="announcement-btn">
+            攻略
+            <span class="notification-dot" id="announcement-dot"></span>
         </button>
     </nav>
 </header>
@@ -35,7 +36,7 @@
     <!-- 公告中心（只读） -->
     <section id="announcements" class="section">
         <div class="container">
-            <h2>最新公告</h2>
+            <h2>最新攻略</h2>
             <div class="announcements-list">
                 <div id="announcements-container"></div>
             </div>
@@ -64,7 +65,7 @@
                         <div class="market-data-info">
                             <div class="market-data-label">宠物最低价</div>
                             <div class="market-data-value" id="display-pet-price">--</div>
-                            <div class="market-data-unit">金</div>
+                            <div class="market-data-unit">元</div>
                         </div>
                     </div>
                     <div class="market-data-item">
@@ -203,6 +204,6 @@
 </main>
 
 
-<script src="app.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
