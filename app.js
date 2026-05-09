@@ -3,14 +3,18 @@ let announcements = JSON.parse(localStorage.getItem('announcements')) || [];
 let developerData = JSON.parse(localStorage.getItem('developerData')) || [];
 
 // ==================== 页面切换功能 ====================
-function showSection(sectionId) {
+function showSection(sectionId, e) {
+    // 阻止事件冒泡
+    if (e) e.stopPropagation();
+    
     // 隐藏所有section
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
     });
 
     // 移除所有导航按钮的active状态
-    document.querySelectorAll('.nav-btn').forEach(btn => {
+    const buttons = document.querySelectorAll('.uiverse-nav-btn');
+    buttons.forEach(btn => {
         btn.classList.remove('active');
     });
 
@@ -18,10 +22,106 @@ function showSection(sectionId) {
     document.getElementById(sectionId).classList.add('active');
 
     // 添加active状态到对应的按钮
-    event.target.classList.add('active');
+    const clickedButton = e ? e.currentTarget : document.querySelector(`.uiverse-nav-btn[onclick*="'${sectionId}'"]`);
+    if (clickedButton) {
+        clickedButton.classList.add('active');
+    }
+    
+    // 如果切换到公告页面，隐藏红点
+    if (sectionId === 'announcements') {
+        hideNotificationDot();
+    }
 }
 
 // ==================== 公告功能 ====================
+
+// 检查是否有新公告（红点提示）
+function checkNewAnnouncements() {
+    console.log('=== 开始检查公告 ===');
+    console.log('LocalStorage announcements:', localStorage.getItem('announcements'));
+    console.log('announcements数组:', announcements);
+    console.log('公告数量:', announcements.length);
+    
+    const dot = document.getElementById('announcement-dot');
+    console.log('红点元素:', dot);
+    
+    // 获取用户上次查看公告的时间
+    const lastViewedTime = localStorage.getItem('lastViewedAnnouncementTime');
+    console.log('上次查看时间:', lastViewedTime);
+    
+    if (announcements.length > 0) {
+        // 有公告
+        const latestAnnouncement = announcements[0];
+        const latestAnnouncementTime = latestAnnouncement.date || latestAnnouncement.time;
+        
+        console.log('最新公告时间:', latestAnnouncementTime);
+        
+        if (!lastViewedTime) {
+            // 用户从未查看过公告，显示红点
+            console.log('用户从未查看过公告，显示红点');
+            if (dot) {
+                dot.style.display = 'block';
+            }
+        } else {
+            // 用户查看过，比较时间
+            try {
+                const lastViewed = new Date(lastViewedTime).getTime();
+                const latestTime = new Date(latestAnnouncementTime).getTime();
+                
+                console.log('时间戳比较:', { lastViewed, latestTime, isNew: latestTime > lastViewed });
+                
+                if (latestTime > lastViewed) {
+                    console.log('有新公告，显示红点');
+                    if (dot) {
+                        dot.style.display = 'block';
+                    }
+                } else {
+                    console.log('没有新公告，隐藏红点');
+                    if (dot) {
+                        dot.style.display = 'none';
+                    }
+                }
+            } catch (e) {
+                console.error('时间比较出错:', e);
+                // 出错时保守处理：显示红点
+                if (dot) {
+                    dot.style.display = 'block';
+                }
+            }
+        }
+    } else {
+        console.log('没有公告，隐藏红点');
+        if (dot) {
+            dot.style.display = 'none';
+        }
+    }
+    console.log('=== 检查结束 ===');
+}
+
+// 显示红点
+function showNotificationDot() {
+    console.log('尝试显示红点...');
+    const dot = document.getElementById('announcement-dot');
+    console.log('红点元素:', dot);
+    if (dot) {
+        dot.style.display = 'block';
+        dot.style.visibility = 'visible';
+        dot.style.opacity = '1';
+        console.log('红点已显示');
+    } else {
+        console.error('找不到红点元素！');
+    }
+}
+
+// 隐藏红点
+function hideNotificationDot() {
+    const dot = document.getElementById('announcement-dot');
+    if (dot) {
+        dot.style.display = 'none';
+    }
+    // 记录查看时间
+    localStorage.setItem('lastViewedAnnouncementTime', new Date().toISOString());
+}
 function addAnnouncement() {
     const title = document.getElementById('announcement-title').value.trim();
     const content = document.getElementById('announcement-content').value.trim();
@@ -76,8 +176,9 @@ function renderAnnouncements() {
         <div class="announcement-item ${announcement.priority}">
             <div class="announcement-header">
                 <div class="announcement-title">${escapeHtml(announcement.title)}</div>
-                <div class="announcement-time">${announcement.time}</div>
+                <div class="announcement-time">${announcement.time || '未知时间'}</div>
             </div>
+            ${announcement.image ? `<div class="announcement-image"><img src="${announcement.image}" alt="公告图片"></div>` : ''}
             <div class="announcement-content">${escapeHtml(announcement.content)}</div>
             <span class="priority-badge ${announcement.priority}">
                 ${getPriorityText(announcement.priority)}
@@ -235,9 +336,16 @@ const conversionUnits = {
 };
 
 function updateConverter() {
-    const type = document.getElementById('convert-type').value;
+    const typeElement = document.getElementById('convert-type');
     const fromSelect = document.getElementById('convert-from');
     const toSelect = document.getElementById('convert-to');
+
+    // 如果页面上没有转换器元素，直接返回
+    if (!typeElement || !fromSelect || !toSelect) {
+        return;
+    }
+
+    const type = typeElement.value;
 
     const units = conversionUnits[type].units;
 
@@ -391,8 +499,12 @@ function getTypeText(type) {
 }
 
 function updateCategoryFilter() {
-    const categories = [...new Set(developerData.map(d => d.category))];
     const filterSelect = document.getElementById('filter-category');
+    if (!filterSelect) {
+        return;
+    }
+    
+    const categories = [...new Set(developerData.map(d => d.category))];
 
     filterSelect.innerHTML = '<option value="">全部分类</option>' +
         categories.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('');
@@ -434,11 +546,31 @@ function escapeHtml(text) {
 
 // ==================== 初始化 ====================
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('页面加载完成，开始初始化...');
+    
+    // 先加载公告数据
     renderAnnouncements();
+    
+    // 然后检查是否有新公告
+    setTimeout(() => {
+        console.log('延迟检查公告...');
+        checkNewAnnouncements();
+    }, 100);
+    
     renderDeveloperData();
     updateCategoryFilter();
     updateConverter();
     loadMarketData();
+    
+    // 获取金杯兑换灵石最低价、金杯最低价和宠物最低价
+    fetchGoldCupExchangeMinPrice();
+    fetchGoldCupMinPrice();
+    fetchPetMinPrice();
+    
+    // 每 3 小时（10800000 毫秒）更新一次
+    setInterval(fetchGoldCupExchangeMinPrice, 3 * 60 * 60 * 1000);
+    setInterval(fetchGoldCupMinPrice, 3 * 60 * 60 * 1000);
+    setInterval(fetchPetMinPrice, 3 * 60 * 60 * 1000);
 });
 
 // ==================== 宠物收益率计算功能 ====================
@@ -658,4 +790,177 @@ function saveMarketData() {
     toggleMarketDataEdit();
 
     alert('市场数据保存成功！');
+}
+
+// ==================== 宠物最低价自动获取 ====================
+
+// 获取金杯兑换灵石最低价格
+async function fetchGoldCupExchangeMinPrice() {
+    const goldCupExchangeElement = document.getElementById('display-gold-cup-exchange');
+    
+    console.log('开始获取金杯兑换灵石最低价...');
+    
+    try {
+        goldCupExchangeElement.textContent = '加载中...';
+        
+        const response = await fetch('https://qinyou.art/prod-api/client/market/prop/propList?pageNum=1&pageSize=18&collectionId=1&propId=1&orderByColumn=sell_num&isAsc=', {
+            method: 'GET',
+            headers: {
+                'Clientid': '428a8310cd442757ae699df5d894f051',
+                'Sa-Token-Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxMTYzODkiLCJyblN0ciI6Ik9COFZ0cjlRaHhrZFNGdTdBa2d2QkVodGNZZlduZ29zIiwiY2xpZW50aWQiOiI0MjhhODMxMGNkNDQyNzU3YWU2OTlkZjVkODk0ZjA1MSIsInRlbmFudElkIjoiMDAwMDAwIiwiYyI6MTE2Mzg5LCJ1c2VyTmFtZSI6IjE4ODg4ODg4ODg4IiwiZGVwdElkIjoxMTAsImRlcHROYW1lIjoi5ri45oiP6YOo6ZeoIiwiZGVwdENhdGVnb3J5IjoiQUFBIn0.VGZz5aitJL2D8D7i0FxbCKj9RWT2BFka2Jkd8CCPCeY',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('金杯兑换灵石接口响应状态:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('金杯兑换灵石接口返回数据:', data);
+        
+        if (data.rows && data.rows.length > 0) {
+            // 找到 unitPrice 最低的那条数据
+            let minPrice = parseFloat(data.rows[0].unitPrice);
+            for (let i = 1; i < data.rows.length; i++) {
+                const price = parseFloat(data.rows[i].unitPrice);
+                if (price < minPrice) {
+                    minPrice = price;
+                }
+            }
+            console.log('获取到金杯兑换灵石最低价格:', minPrice);
+            goldCupExchangeElement.textContent = minPrice;
+            
+            // 保存缓存
+            localStorage.setItem('goldCupExchangeMinPrice', minPrice);
+            localStorage.setItem('goldCupExchangeMinPriceTime', new Date().toISOString());
+        } else {
+            console.log('没有金杯兑换灵石数据');
+            goldCupExchangeElement.textContent = '--';
+        }
+    } catch (error) {
+        console.error('获取金杯兑换灵石最低价失败:', error);
+        
+        // 尝试读取缓存
+        const cachedPrice = localStorage.getItem('goldCupExchangeMinPrice');
+        if (cachedPrice) {
+            console.log('使用金杯兑换灵石缓存价格:', cachedPrice);
+            goldCupExchangeElement.textContent = `${cachedPrice}`;
+        } else {
+            console.log('没有金杯兑换灵石缓存数据');
+            goldCupExchangeElement.textContent = '--';
+        }
+    }
+}
+
+// 获取金杯最低价格
+async function fetchGoldCupMinPrice() {
+    const goldCupPriceElement = document.getElementById('display-gold-cup-price');
+    
+    console.log('开始获取金杯最低价...');
+    
+    try {
+        goldCupPriceElement.textContent = '加载中...';
+        
+        const response = await fetch('https://qinyou.art/prod-api/client/market/prop/mainPropMarketList?pageNum=1&pageSize=18&orderByColumn=unitPrice&propId=1&isAsc=asc', {
+            method: 'GET',
+            headers: {
+                'Clientid': '428a8310cd442757ae699df5d894f051',
+                'Sa-Token-Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxMTYzODkiLCJyblN0ciI6Ik9COFZ0cjlRaHhrZFNGdTdBa2d2QkVodGNZZlduZ29zIiwiY2xpZW50aWQiOiI0MjhhODMxMGNkNDQyNzU3YWU2OTlkZjVkODk0ZjA1MSIsInRlbmFudElkIjoiMDAwMDAwIiwiYyI6MTE2Mzg5LCJ1c2VyTmFtZSI6IjE4ODg4ODg4ODg4IiwiZGVwdElkIjoxMTAsImRlcHROYW1lIjoi5ri45oiP6YOo6ZeoIiwiZGVwdENhdGVnb3J5IjoiQUFBIn0.VGZz5aitJL2D8D7i0FxbCKj9RWT2BFka2Jkd8CCPCeY',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('金杯接口响应状态:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('金杯接口返回数据:', data);
+        
+        if (data.rows && data.rows.length > 0) {
+            // 取第一个（已经按 unitPrice 升序排列）
+            const minPrice = data.rows[0].unitPrice;
+            console.log('获取到金杯最低价格:', minPrice);
+            goldCupPriceElement.textContent = minPrice;
+            
+            // 保存缓存
+            localStorage.setItem('goldCupMinPrice', minPrice);
+            localStorage.setItem('goldCupMinPriceTime', new Date().toISOString());
+        } else {
+            console.log('没有金杯数据');
+            goldCupPriceElement.textContent = '--';
+        }
+    } catch (error) {
+        console.error('获取金杯最低价失败:', error);
+        
+        // 尝试读取缓存
+        const cachedPrice = localStorage.getItem('goldCupMinPrice');
+        if (cachedPrice) {
+            console.log('使用金杯缓存价格:', cachedPrice);
+            goldCupPriceElement.textContent = `${cachedPrice}`;
+        } else {
+            console.log('没有金杯缓存数据');
+            goldCupPriceElement.textContent = '--';
+        }
+    }
+}
+
+// 获取宠物最低价格
+async function fetchPetMinPrice() {
+    const petPriceElement = document.getElementById('display-pet-price');
+    
+    console.log('开始获取宠物最低价...');
+    
+    try {
+        petPriceElement.textContent = '加载中...';
+        
+        const response = await fetch('https://qinyou.art/prod-api/client/market/whaleSpirit/list?pageNum=1&pageSize=50&orderByColumn=unitPrice&isAsc=asc', {
+            method: 'GET',
+            headers: {
+                'Clientid': '428a8310cd442757ae699df5d894f051',
+                'Sa-Token-Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxMTYzODkiLCJyblN0ciI6Ik9COFZ0cjlRaHhrZFNGdTdBa2d2QkVodGNZZlduZ29zIiwiY2xpZW50aWQiOiI0MjhhODMxMGNkNDQyNzU3YWU2OTlkZjVkODk0ZjA1MSIsInRlbmFudElkIjoiMDAwMDAwIiwiYyI6MTE2Mzg5LCJ1c2VyTmFtZSI6IjE4ODg4ODg4ODg4IiwiZGVwdElkIjoxMTAsImRlcHROYW1lIjoi5ri45oiP6YOo6ZeoIiwiZGVwdENhdGVnb3J5IjoiQUFBIn0.VGZz5aitJL2D8D7i0FxbCKj9RWT2BFka2Jkd8CCPCeY',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('接口响应状态:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('接口返回数据:', data);
+        
+        if (data.rows && data.rows.length > 0) {
+            // 取第一个（已经按 unitPrice 升序排列）
+            const minPrice = data.rows[0].unitPrice;
+            console.log('获取到最低价格:', minPrice);
+            petPriceElement.textContent = minPrice;
+            
+            // 保存缓存
+            localStorage.setItem('petMinPrice', minPrice);
+            localStorage.setItem('petMinPriceTime', new Date().toISOString());
+        } else {
+            console.log('没有数据');
+            petPriceElement.textContent = '--';
+        }
+    } catch (error) {
+        console.error('获取宠物最低价失败:', error);
+        
+        // 尝试读取缓存
+        const cachedPrice = localStorage.getItem('petMinPrice');
+        if (cachedPrice) {
+            console.log('使用缓存价格:', cachedPrice);
+            petPriceElement.textContent = `${cachedPrice}`;
+        } else {
+            console.log('没有缓存数据');
+            petPriceElement.textContent = '--';
+        }
+    }
 }
