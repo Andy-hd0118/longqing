@@ -84,8 +84,12 @@
         </section>
     </main>
 
+    <script src="firebase-config.js"></script>
+    <script src="firebase-service.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // 初始化 Firebase 并加载数据
+        document.addEventListener('DOMContentLoaded', async function() {
+            await firebaseService.initialize();
             loadAdminAnnouncements();
             setupImagePreview();
         });
@@ -110,7 +114,7 @@
             }
         }
 
-        function addAnnouncement() {
+        async function addAnnouncement() {
             const title = document.getElementById('announcement-title').value;
             const content = document.getElementById('announcement-content').value;
             const priority = document.getElementById('announcement-priority').value;
@@ -121,19 +125,29 @@
                 return;
             }
             
-            const processAnnouncement = (imageData) => {
-                const announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
-                announcements.unshift({
+            const processAnnouncement = async (imageData) => {
+                const announcement = {
                     id: Date.now(),
                     title: title,
                     content: content,
                     priority: priority,
                     image: imageData || null,
                     time: new Date().toLocaleString('zh-CN'),
-                    date: new Date().toISOString()
-                });
+                    date: new Date().toISOString(),
+                    timestamp: Date.now()
+                };
                 
-                localStorage.setItem('announcements', JSON.stringify(announcements));
+                try {
+                    // 使用 Firebase 服务添加公告
+                    await firebaseService.addAnnouncement(announcement);
+                    console.log('公告已保存到 Firebase');
+                } catch (error) {
+                    console.error('保存到 Firebase 失败:', error);
+                    // 降级到 localStorage
+                    const announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+                    announcements.unshift(announcement);
+                    localStorage.setItem('announcements', JSON.stringify(announcements));
+                }
                 
                 document.getElementById('announcement-title').value = '';
                 document.getElementById('announcement-content').value = '';
@@ -156,8 +170,18 @@
             }
         }
 
-        function loadAdminAnnouncements() {
-            const announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+        async function loadAdminAnnouncements() {
+            let announcements;
+            
+            try {
+                // 从 Firebase 加载
+                announcements = await firebaseService.getAnnouncements();
+            } catch (error) {
+                console.error('从 Firebase 加载失败:', error);
+                // 降级到 localStorage
+                announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+            }
+            
             const container = document.getElementById('admin-announcements-container');
             
             if (announcements.length === 0) {
@@ -180,12 +204,20 @@
             ).join('');
         }
 
-        function deleteAnnouncement(id) {
+        async function deleteAnnouncement(id) {
             if (!confirm('确定要删除这条公告吗？')) return;
             
-            let announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
-            announcements = announcements.filter(item => item.id !== id);
-            localStorage.setItem('announcements', JSON.stringify(announcements));
+            try {
+                // 从 Firebase 删除
+                await firebaseService.deleteAnnouncement(id);
+                console.log('公告已从 Firebase 删除');
+            } catch (error) {
+                console.error('从 Firebase 删除失败:', error);
+                // 降级到 localStorage
+                let announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+                announcements = announcements.filter(item => item.id !== id);
+                localStorage.setItem('announcements', JSON.stringify(announcements));
+            }
             
             loadAdminAnnouncements();
         }
