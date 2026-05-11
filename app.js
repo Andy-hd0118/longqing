@@ -1,6 +1,24 @@
 // ==================== 全局变量和数据存储 ====================
-let announcements = JSON.parse(localStorage.getItem('announcements')) || [];
-let developerData = JSON.parse(localStorage.getItem('developerData')) || [];
+let announcements = [];
+let developerData = [];
+
+// 初始化 Firebase 服务并加载数据
+async function initializeData() {
+    try {
+        // 加载公告数据
+        announcements = await firebaseService.getAnnouncements();
+        
+        // 加载开发者数据
+        developerData = await firebaseService.getDeveloperData();
+        
+        console.log('数据加载成功:', { announcements: announcements.length, developerData: developerData.length });
+    } catch (error) {
+        console.error('数据加载失败:', error);
+        // 降级到 localStorage
+        announcements = JSON.parse(localStorage.getItem('announcements')) || [];
+        developerData = JSON.parse(localStorage.getItem('developerData')) || [];
+    }
+}
 
 // ==================== 页面切换功能 ====================
 function showSection(sectionId, e) {
@@ -154,14 +172,31 @@ function addAnnouncement() {
 
 function deleteAnnouncement(id) {
     if (confirm('确定要删除这条公告吗？')) {
+        // 从数组中删除
         announcements = announcements.filter(a => a.id !== id);
-        saveAnnouncements();
-        renderAnnouncements();
+        
+        // 保存到 Firebase
+        firebaseService.saveAnnouncements(announcements)
+            .then(() => {
+                renderAnnouncements();
+                console.log('公告删除成功');
+            })
+            .catch(error => {
+                console.error('删除公告失败:', error);
+                // 降级到 localStorage
+                localStorage.setItem('announcements', JSON.stringify(announcements));
+                renderAnnouncements();
+            });
     }
 }
 
 function saveAnnouncements() {
-    localStorage.setItem('announcements', JSON.stringify(announcements));
+    // 使用 Firebase 服务保存数据
+    firebaseService.saveAnnouncements(announcements).catch(error => {
+        console.error('保存公告失败:', error);
+        // 降级到 localStorage
+        localStorage.setItem('announcements', JSON.stringify(announcements));
+    });
 }
 
 function renderAnnouncements() {
@@ -178,13 +213,62 @@ function renderAnnouncements() {
                 <div class="announcement-title">${escapeHtml(announcement.title)}</div>
                 <div class="announcement-time">${announcement.time || '未知时间'}</div>
             </div>
-            ${announcement.image ? `<div class="announcement-image"><img src="${announcement.image}" alt="公告图片"></div>` : ''}
+            ${announcement.image ? `<div class="announcement-image"><img src="${announcement.image}" alt="公告图片" class="clickable-image" onclick="showImagePreview(this.src)" title="点击放大查看"><div class="image-zoom-hint">🔍 点击放大</div></div>` : ''}
             <div class="announcement-content">${escapeHtml(announcement.content)}</div>
             <span class="priority-badge ${announcement.priority}">
                 ${getPriorityText(announcement.priority)}
             </span>
         </div>
     `).join('');
+}
+
+// 显示图片预览模态框
+function showImagePreview(imageSrc) {
+    // 如果已经存在模态框，先移除
+    const existingModal = document.querySelector('.image-preview-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    const modal = document.createElement('div');
+    modal.className = 'image-preview-modal';
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            hideImagePreview();
+        }
+    };
+    
+    modal.innerHTML = `
+        <div class="image-preview-content">
+            <span class="image-preview-close">&times;</span>
+            <img src="${imageSrc}" alt="预览图片">
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // 点击关闭按钮关闭模态框
+    const closeBtn = modal.querySelector('.image-preview-close');
+    closeBtn.onclick = function() {
+        hideImagePreview();
+    };
+    
+    // 按ESC键关闭模态框
+    const escHandler = function(e) {
+        if (e.key === 'Escape' || e.keyCode === 27) {
+            hideImagePreview();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+// 隐藏图片预览模态框
+function hideImagePreview() {
+    const modal = document.querySelector('.image-preview-modal');
+    if (modal) {
+        modal.remove();
+    }
 }
 
 function getPriorityText(priority) {
@@ -452,7 +536,12 @@ function deleteDeveloperData(id) {
 }
 
 function saveDeveloperData() {
-    localStorage.setItem('developerData', JSON.stringify(developerData));
+    // 使用 Firebase 服务保存数据
+    firebaseService.saveDeveloperData(developerData).catch(error => {
+        console.error('保存开发者数据失败:', error);
+        // 降级到 localStorage
+        localStorage.setItem('developerData', JSON.stringify(developerData));
+    });
 }
 
 function renderDeveloperData(dataToRender = null) {
@@ -545,13 +634,26 @@ function escapeHtml(text) {
 }
 
 // ==================== 初始化 ====================
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     console.log('页面加载完成，开始初始化...');
     
-    // 先加载公告数据
+    // 首先初始化 Firebase 并加载数据
+    await initializeData();
+    
+    // 设置实时监听（如果 Firebase 已配置）
+    if (firebaseService && !firebaseService.useLocalStorage) {
+        firebaseService.onAnnouncementsChange((newAnnouncements) => {
+            console.log('检测到公告数据变化，更新本地数据');
+            announcements = newAnnouncements;
+            renderAnnouncements();
+            checkNewAnnouncements();
+        });
+    }
+    
+    // 渲染公告
     renderAnnouncements();
     
-    // 然后检查是否有新公告
+    // 检查是否有新公告
     setTimeout(() => {
         console.log('延迟检查公告...');
         checkNewAnnouncements();
@@ -738,8 +840,17 @@ function clearAllInputs() {
 // ==================== 市场数据管理功能 ====================
 
 // 加载市场数据
-function loadMarketData() {
-    const marketData = JSON.parse(localStorage.getItem('marketData')) || {};
+async function loadMarketData() {
+    let marketData;
+    
+    try {
+        // 尝试从 Firebase 加载
+        marketData = await firebaseService.getMarketData();
+    } catch (error) {
+        console.error('从 Firebase 加载市场数据失败:', error);
+        // 降级到 localStorage
+        marketData = JSON.parse(localStorage.getItem('marketData')) || {};
+    }
 
     const goldCupPrice = marketData.goldCupPrice || '--';
     const petPrice = marketData.petPrice || '--';
@@ -791,7 +902,7 @@ function toggleMarketDataEdit() {
 }
 
 // 保存市场数据
-function saveMarketData() {
+async function saveMarketData() {
     const goldCupPrice = document.getElementById('market-gold-cup-price').value.trim();
     const petPrice = document.getElementById('market-pet-price').value.trim();
     const goldCupExchange = document.getElementById('market-gold-cup-exchange').value.trim();
@@ -808,7 +919,15 @@ function saveMarketData() {
         updateTime: new Date().toLocaleString('zh-CN')
     };
 
-    localStorage.setItem('marketData', JSON.stringify(marketData));
+    try {
+        // 保存到 Firebase
+        await firebaseService.saveMarketData(marketData);
+        console.log('市场数据已保存到 Firebase');
+    } catch (error) {
+        console.error('保存到 Firebase 失败:', error);
+        // 降级到 localStorage
+        localStorage.setItem('marketData', JSON.stringify(marketData));
+    }
 
     // 更新显示
     loadMarketData();
