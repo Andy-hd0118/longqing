@@ -1,24 +1,6 @@
 // ==================== 全局变量和数据存储 ====================
-let announcements = [];
-let developerData = [];
-
-// 初始化 Firebase 服务并加载数据
-async function initializeData() {
-    try {
-        // 加载公告数据
-        announcements = await firebaseService.getAnnouncements();
-        
-        // 加载开发者数据
-        developerData = await firebaseService.getDeveloperData();
-        
-        console.log('数据加载成功:', { announcements: announcements.length, developerData: developerData.length });
-    } catch (error) {
-        console.error('数据加载失败:', error);
-        // 降级到 localStorage
-        announcements = JSON.parse(localStorage.getItem('announcements')) || [];
-        developerData = JSON.parse(localStorage.getItem('developerData')) || [];
-    }
-}
+let announcements = JSON.parse(localStorage.getItem('announcements')) || [];
+let developerData = JSON.parse(localStorage.getItem('developerData')) || [];
 
 // ==================== 页面切换功能 ====================
 function showSection(sectionId, e) {
@@ -634,26 +616,13 @@ function escapeHtml(text) {
 }
 
 // ==================== 初始化 ====================
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', function() {
     console.log('页面加载完成，开始初始化...');
     
-    // 首先初始化 Firebase 并加载数据
-    await initializeData();
-    
-    // 设置实时监听（如果 Firebase 已配置）
-    if (firebaseService && !firebaseService.useLocalStorage) {
-        firebaseService.onAnnouncementsChange((newAnnouncements) => {
-            console.log('检测到公告数据变化，更新本地数据');
-            announcements = newAnnouncements;
-            renderAnnouncements();
-            checkNewAnnouncements();
-        });
-    }
-    
-    // 渲染公告
+    // 先加载公告数据
     renderAnnouncements();
     
-    // 检查是否有新公告
+    // 然后检查是否有新公告
     setTimeout(() => {
         console.log('延迟检查公告...');
         checkNewAnnouncements();
@@ -840,17 +809,8 @@ function clearAllInputs() {
 // ==================== 市场数据管理功能 ====================
 
 // 加载市场数据
-async function loadMarketData() {
-    let marketData;
-    
-    try {
-        // 尝试从 Firebase 加载
-        marketData = await firebaseService.getMarketData();
-    } catch (error) {
-        console.error('从 Firebase 加载市场数据失败:', error);
-        // 降级到 localStorage
-        marketData = JSON.parse(localStorage.getItem('marketData')) || {};
-    }
+function loadMarketData() {
+    const marketData = JSON.parse(localStorage.getItem('marketData')) || {};
 
     const goldCupPrice = marketData.goldCupPrice || '--';
     const petPrice = marketData.petPrice || '--';
@@ -902,7 +862,7 @@ function toggleMarketDataEdit() {
 }
 
 // 保存市场数据
-async function saveMarketData() {
+function saveMarketData() {
     const goldCupPrice = document.getElementById('market-gold-cup-price').value.trim();
     const petPrice = document.getElementById('market-pet-price').value.trim();
     const goldCupExchange = document.getElementById('market-gold-cup-exchange').value.trim();
@@ -919,15 +879,7 @@ async function saveMarketData() {
         updateTime: new Date().toLocaleString('zh-CN')
     };
 
-    try {
-        // 保存到 Firebase
-        await firebaseService.saveMarketData(marketData);
-        console.log('市场数据已保存到 Firebase');
-    } catch (error) {
-        console.error('保存到 Firebase 失败:', error);
-        // 降级到 localStorage
-        localStorage.setItem('marketData', JSON.stringify(marketData));
-    }
+    localStorage.setItem('marketData', JSON.stringify(marketData));
 
     // 更新显示
     loadMarketData();
