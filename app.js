@@ -528,6 +528,12 @@ function saveDeveloperData() {
 
 function renderDeveloperData(dataToRender = null) {
     const container = document.getElementById('data-container');
+    
+    // 如果容器不存在，直接返回（比如在 admin.html 页面）
+    if (!container) {
+        return;
+    }
+    
     const data = dataToRender || developerData;
 
     if (data.length === 0) {
