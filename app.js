@@ -712,15 +712,24 @@ function displayYieldResult(yieldRate, formula, paybackDays, mode) {
 
 // 清空所有输入数据
 function clearAllInputs() {
+    // 设置标志，阻止自动填充
+    window.userCleared = true;
+    
     // 清空基础输入字段
     document.getElementById('pet-price').value = '';
+    document.getElementById('pet-price').placeholder = '';
     document.getElementById('gold-cup-exchange').value = '';
+    document.getElementById('gold-cup-exchange').placeholder = '';
     document.getElementById('gold-cup-price').value = '';
+    document.getElementById('gold-cup-price').placeholder = '';
 
     // 清空模式特定输入字段
     document.getElementById('rental-income').value = '';
+    document.getElementById('rental-income').placeholder = '';
     document.getElementById('convoy-income').value = '';
+    document.getElementById('convoy-income').placeholder = '';
     document.getElementById('pvp-cups').value = '';
+    document.getElementById('pvp-cups').placeholder = '';
 
     // 隐藏结果区域
     document.getElementById('yield-result').style.display = 'none';
@@ -736,9 +745,27 @@ function loadMarketData() {
     const petPrice = marketData.petPrice || '--';
     const goldCupExchange = marketData.goldCupExchange || '--';
 
+    // 更新显示区域
     document.getElementById('display-gold-cup-price').textContent = goldCupPrice;
     document.getElementById('display-pet-price').textContent = petPrice;
     document.getElementById('display-gold-cup-exchange').textContent = goldCupExchange;
+    
+    // 自动填充市场最低价到输入框（作为默认值）
+    // 如果用户已手动清空，则不再自动填充
+    if (!window.userCleared) {
+        if (goldCupPrice && goldCupPrice !== '--') {
+            document.getElementById('gold-cup-price').value = goldCupPrice;
+            document.getElementById('gold-cup-price').placeholder = goldCupPrice;
+        }
+        if (petPrice && petPrice !== '--') {
+            document.getElementById('pet-price').value = petPrice;
+            document.getElementById('pet-price').placeholder = petPrice;
+        }
+        if (goldCupExchange && goldCupExchange !== '--') {
+            document.getElementById('gold-cup-exchange').value = goldCupExchange;
+            document.getElementById('gold-cup-exchange').placeholder = goldCupExchange;
+        }
+    }
 }
 
 // 切换编辑模式
@@ -833,6 +860,16 @@ async function fetchGoldCupExchangeMinPrice() {
             console.log('获取到金杯兑换灵石最低价格:', minPrice);
             goldCupExchangeElement.textContent = minPrice;
             
+            // 自动填充到输入框（作为默认值）
+            // 如果用户已手动清空，则不再自动填充
+            if (!window.userCleared) {
+                const goldCupExchangeInput = document.getElementById('gold-cup-exchange');
+                if (goldCupExchangeInput) {
+                    goldCupExchangeInput.value = minPrice;
+                    goldCupExchangeInput.placeholder = minPrice;
+                }
+            }
+            
             // 保存缓存
             localStorage.setItem('goldCupExchangeMinPrice', minPrice);
             localStorage.setItem('goldCupExchangeMinPriceTime', new Date().toISOString());
@@ -888,6 +925,16 @@ async function fetchGoldCupMinPrice() {
             console.log('获取到金杯最低价格:', minPrice);
             goldCupPriceElement.textContent = minPrice;
             
+            // 自动填充到输入框（作为默认值）
+            // 如果用户已手动清空，则不再自动填充
+            if (!window.userCleared) {
+                const goldCupPriceInput = document.getElementById('gold-cup-price');
+                if (goldCupPriceInput) {
+                    goldCupPriceInput.value = minPrice;
+                    goldCupPriceInput.placeholder = minPrice;
+                }
+            }
+            
             // 保存缓存
             localStorage.setItem('goldCupMinPrice', minPrice);
             localStorage.setItem('goldCupMinPriceTime', new Date().toISOString());
@@ -942,6 +989,16 @@ async function fetchPetMinPrice() {
             const minPrice = data.rows[0].unitPrice;
             console.log('获取到最低价格:', minPrice);
             petPriceElement.textContent = minPrice;
+            
+            // 自动填充到输入框（作为默认值）
+            // 如果用户已手动清空，则不再自动填充
+            if (!window.userCleared) {
+                const petPriceInput = document.getElementById('pet-price');
+                if (petPriceInput) {
+                    petPriceInput.value = minPrice;
+                    petPriceInput.placeholder = minPrice;
+                }
+            }
             
             // 保存缓存
             localStorage.setItem('petMinPrice', minPrice);
