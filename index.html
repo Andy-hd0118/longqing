@@ -23,7 +23,7 @@
 <header>
     <nav class="uiverse-nav">
         <button class="uiverse-nav-btn active" onclick="showSection('calculator')">
-            计算器
+            收益率
         </button>
         <button class="uiverse-nav-btn" onclick="showSection('announcements')" id="announcement-btn">
             攻略
@@ -38,7 +38,19 @@
         <div class="container">
             <h2>最新攻略</h2>
             <div class="announcements-list">
-                这是一条新功略
+                <div class="announcement-item normal">
+                    <div class="announcement-header">
+                        <div class="announcement-title">BaByMon攻略</div>
+                        <div class="announcement-time">2026/5/11</div>
+                    </div>
+                    <div class="announcement-image">
+                        <a href="攻略.png" target="_blank">
+                            <img src="攻略.png" alt="攻略图片">
+                        </a>
+                    </div>
+                    <div class="announcement-content"></div>
+                    <span class="priority-badge normal">普通</span>
+                </div>
                 <div id="announcements-container"></div>
             </div>
         </div>
@@ -47,7 +59,7 @@
     <!-- 数据计算器 -->
     <section id="calculator" class="section active">
         <div class="container">
-            <h2>BaByMoN打金计算器</h2>
+            <h2>宠物收益率计算器</h2>
 
             <!-- 市场数据展示区 -->
             <div class="market-data-panel">
@@ -180,7 +192,6 @@
             </div>
         </div>
     </section>
-
 
 </main>
 
