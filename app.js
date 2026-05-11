@@ -185,7 +185,7 @@ function renderAnnouncements() {
     const container = document.getElementById('announcements-container');
 
     if (announcements.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">暂无公告</p>';
+        container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">龙清工会</p>';
         return;
     }
 
