@@ -23,7 +23,7 @@
 <header>
     <nav class="uiverse-nav">
         <button class="uiverse-nav-btn active" onclick="showSection('calculator')">
-            计算器
+            收益率
         </button>
         <button class="uiverse-nav-btn" onclick="showSection('announcements')" id="announcement-btn">
             攻略
@@ -46,7 +46,7 @@
     <!-- 数据计算器 -->
     <section id="calculator" class="section active">
         <div class="container">
-            <h2>BaByMoN打金计算器</h2>
+            <h2>宠物收益率计算器</h2>
 
             <!-- 市场数据展示区 -->
             <div class="market-data-panel">
@@ -148,7 +148,7 @@
                     <div class="yield-input-group">
                         <label>掉落的金杯数</label>
                         <input type="number" id="pvp-cups"  step="1" value="0.45">
-                        <div class="input-tip">一只宠物每天恢复4点能量，预计一天掉落金杯数：0.45(一胜一负)</div>
+                        <div class="input-tip">一只宠物每天恢复4点能量，预计一天掉落金杯数：0.45(一胜一负)包含排行榜产出，平均每只宠物每天产出为0.6  </div>
                     </div>
                 </div>
 
@@ -204,6 +204,8 @@
 </main>
 
 
+<script src="firebase-config.js"></script>
+<script src="firebase-service.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
