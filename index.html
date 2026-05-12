@@ -23,7 +23,7 @@
 <header>
     <nav class="uiverse-nav">
         <button class="uiverse-nav-btn active" onclick="showSection('calculator')">
-            计算器
+            收益率
         </button>
         <button class="uiverse-nav-btn" onclick="showSection('announcements')" id="announcement-btn">
             攻略
@@ -40,24 +40,25 @@
             <div class="announcements-list">
                 <div class="announcement-item normal">
                     <div class="announcement-header">
-                        <div class="announcement-title">BaByMon攻略</div>
-                        <div class="announcement-time">2026/5/11</div>
+                        <div class="announcement-title">攻略</div>
+                        <div class="announcement-time">2024/5/11</div>
                     </div>
                     <div class="announcement-image">
-                      <img src="gonglue.png" alt="攻略图片" class="clickable-image" onclick="showImagePreview(this.src)" style="cursor: pointer;">
+                        <img src="gonglue.png" alt="攻略图片" class="clickable-image" onclick="showImagePreview(this.src)" style="cursor: pointer;">
                     </div>
                     <div class="announcement-content">来自其他玩家投稿</div>
                     <span class="priority-badge normal">普通</span>
                 </div>
-              
+
             </div>
         </div>
+
     </section>
 
     <!-- 数据计算器 -->
     <section id="calculator" class="section active">
         <div class="container">
-            <h2>BaByMoN打金计算器</h2>
+            <h2>宠物收益率计算器</h2>
 
             <!-- 市场数据展示区 -->
             <div class="market-data-panel">
@@ -191,8 +192,12 @@
         </div>
     </section>
 
+
+
 </main>
 
+<!-- 水印 -->
+<div class="watermark">龙清公会</div>
 
 <script src="app.js"></script>
 </body>
