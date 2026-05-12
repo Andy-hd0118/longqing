@@ -183,9 +183,9 @@ function saveAnnouncements() {
 
 function renderAnnouncements() {
     const container = document.getElementById('announcements-container');
-
-    if (announcements.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">龙清工会</p>';
+    
+    // 如果容器不存在，直接返回
+    if (!container) {
         return;
     }
 
