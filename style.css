@@ -1998,13 +1998,15 @@ main {
     }
 
     .uiverse-nav {
-        flex-direction: column;
-        width: 90%;
-        border-radius: 20px;
+        flex-direction: row;
+        width: fit-content;
+        border-radius: 50px;
+        gap: 15px;
     }
 
     .uiverse-nav-btn {
-        width: 100%;
+        width: auto;
+        padding: 12px 24px;
     }
 
     main {
