@@ -189,10 +189,11 @@ function renderAnnouncements() {
         return;
     }
 
-     // 如果没有公告数据，保留原有的HTML内容
+    // 如果没有公告数据，保留原有的HTML内容
     if (!announcements || announcements.length === 0) {
         return;
     }
+
     container.innerHTML = announcements.map(announcement => `
         <div class="announcement-item ${announcement.priority}">
             <div class="announcement-header">
