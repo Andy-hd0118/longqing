@@ -657,26 +657,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ==================== 宠物收益率计算功能 ====================
 
-// 更新模式专属输入框
-function updateYieldInputs() {
-    const mode = document.querySelector('input[name="yield-mode"]:checked').value;
-
-    // 隐藏所有模式专属输入框
-    document.getElementById('rental-inputs').style.display = 'none';
-    document.getElementById('convoy-inputs').style.display = 'none';
-    document.getElementById('pvp-inputs').style.display = 'none';
-
-    // 显示选中模式的输入框
-    if (mode === 'rental') {
-        document.getElementById('rental-inputs').style.display = 'block';
-    } else if (mode === 'convoy') {
-        document.getElementById('convoy-inputs').style.display = 'block';
-    } else if (mode === 'pvp') {
-        document.getElementById('pvp-inputs').style.display = 'block';
-    }
-}
-
-// 计算宠物收益率
+// 计算宠物收益率（同时计算三个模式）
 function calculatePetYield() {
     // 获取基础数据
     const petPrice = parseFloat(document.getElementById('pet-price').value);
@@ -694,56 +675,101 @@ function calculatePetYield() {
         return;
     }
 
-    const mode = document.querySelector('input[name="yield-mode"]:checked').value;
-    let yieldRate = 0;
-    let formula = '';
-    let paybackDays = 0;
-
-    if (mode === 'rental') {
-        // 出租模式：收益率 = 出租收益灵石数量 / 1金杯可兑换灵石数量 × 金杯价格 / 宠物本体价格
-        const rentalIncome = parseFloat(document.getElementById('rental-income').value);
-
-        if (!rentalIncome || rentalIncome <= 0) {
-            alert('请输入有效的出租收益灵石数量！');
-            return;
-        }
-
-        yieldRate = (rentalIncome / goldCupExchange * goldCupPrice) / petPrice;
-        formula = `出租收益灵石数量 ÷ 1金杯可兑换灵石数量 × 金杯价格 ÷ 宠物本体价格<br>${rentalIncome} ÷ ${goldCupExchange} × ${goldCupPrice} ÷ ${petPrice}`;
-        paybackDays = 1 / yieldRate;
-
-    } else if (mode === 'convoy') {
-        // 发车模式：收益率 = 每只宠物预计一天发车灵石收益 / 1金杯可兑换灵石数量 × 金杯价格 / 宠物本体价格
-        const convoyIncome = parseFloat(document.getElementById('convoy-income').value);
-
-        if (!convoyIncome || convoyIncome <= 0) {
-            alert('请输入有效的每天发车灵石收益！');
-            return;
-        }
-
-        yieldRate = (convoyIncome / goldCupExchange * goldCupPrice) / petPrice;
-        formula = `每只宠物预计一天发车灵石收益 ÷ 1金杯可兑换灵石数量 × 金杯价格 ÷ 宠物本体价格<br>${convoyIncome} ÷ ${goldCupExchange} × ${goldCupPrice} ÷ ${petPrice}`;
-        paybackDays = 1 / yieldRate;
-
-    } else if (mode === 'pvp') {
-        // PVP 模式：收益率 = 每日获取金杯数量 × 金杯价格 / 成本
-        const pvpCups = parseFloat(document.getElementById('pvp-cups').value);
-
-        if (!pvpCups || pvpCups < 0) {
-            alert('请输入有效的掉落金杯数！');
-            return;
-        }
-
-        yieldRate = (pvpCups * goldCupPrice) / petPrice;
-        formula = `每日获取金杯数 × 金杯价格 ÷ 成本<br>${pvpCups} × ${goldCupPrice} ÷ ${petPrice}`;
-        paybackDays = yieldRate > 0 ? 1 / yieldRate : Infinity;
+    // 计算出租模式
+    const rentalIncome = parseFloat(document.getElementById('rental-income').value);
+    if (rentalIncome && rentalIncome > 0) {
+        const yieldRate = (rentalIncome / goldCupExchange * goldCupPrice) / petPrice;
+        const formula = `出租收益灵石数量 ÷ 1金杯可兑换灵石数量 × 金杯价格 ÷ 宠物本体价格<br>${rentalIncome} ÷ ${goldCupExchange} × ${goldCupPrice} ÷ ${petPrice}`;
+        const paybackDays = 1 / yieldRate;
+        displayModeResult('rental', yieldRate, formula, paybackDays);
+    } else {
+        document.getElementById('rental-result').style.display = 'none';
     }
 
-    // 显示结果
-    displayYieldResult(yieldRate, formula, paybackDays, mode);
+    // 计算发车模式
+    const convoyIncome = parseFloat(document.getElementById('convoy-income').value);
+    if (convoyIncome && convoyIncome > 0) {
+        const yieldRate = (convoyIncome / goldCupExchange * goldCupPrice) / petPrice;
+        const formula = `每只宠物预计一天发车灵石收益 ÷ 1金杯可兑换灵石数量 × 金杯价格 ÷ 宠物本体价格<br>${convoyIncome} ÷ ${goldCupExchange} × ${goldCupPrice} ÷ ${petPrice}`;
+        const paybackDays = 1 / yieldRate;
+        displayModeResult('convoy', yieldRate, formula, paybackDays);
+    } else {
+        document.getElementById('convoy-result').style.display = 'none';
+    }
+
+    // 计算PVP模式
+    const pvpCups = parseFloat(document.getElementById('pvp-cups').value);
+    if (pvpCups !== null && !isNaN(pvpCups) && pvpCups >= 0) {
+        const yieldRate = (pvpCups * goldCupPrice) / petPrice;
+        const formula = `每日获取金杯数 × 金杯价格 ÷ 成本<br>${pvpCups} × ${goldCupPrice} ÷ ${petPrice}`;
+        const paybackDays = yieldRate > 0 ? 1 / yieldRate : Infinity;
+        displayModeResult('pvp', yieldRate, formula, paybackDays);
+    } else {
+        document.getElementById('pvp-result').style.display = 'none';
+    }
+
+    // 滚动到第一个结果区域
+    const rentalResult = document.getElementById('rental-result');
+    if (rentalResult && rentalResult.style.display === 'block') {
+        rentalResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 }
 
-// 显示收益率结果
+// 显示单个模式的结果
+function displayModeResult(mode, yieldRate, formula, paybackDays) {
+    const resultDiv = document.getElementById(mode + '-result');
+    const percentageElement = document.getElementById(mode + '-percentage');
+    const formulaTextElement = document.getElementById(mode + '-formula-text');
+    const formulaNumbersElement = document.getElementById(mode + '-formula-numbers');
+    const paybackDaysElement = document.getElementById(mode + '-payback');
+    const badgeElement = document.getElementById(mode + '-badge');
+
+    // 转换为百分比
+    const percentage = (yieldRate * 100).toFixed(2);
+
+    // 设置收益率显示
+    percentageElement.textContent = percentage + '%';
+
+    // 解析公式为文字和数字两部分
+    const formulaParts = formula.split('<br>');
+    if (formulaParts.length === 2) {
+        formulaTextElement.textContent = formulaParts[0];
+        formulaNumbersElement.textContent = formulaParts[1];
+    } else {
+        formulaTextElement.textContent = formula;
+        formulaNumbersElement.textContent = '';
+    }
+
+    // 设置回本天数
+    if (paybackDays === Infinity || paybackDays <= 0) {
+        paybackDaysElement.textContent = '无法回本';
+    } else {
+        paybackDaysElement.textContent = paybackDays.toFixed(1) + ' 天';
+    }
+
+    // 设置评级徽章
+    let badgeText = '';
+    let badgeClass = '';
+
+    if (yieldRate > 0.02) {
+        badgeText = '优秀';
+        badgeClass = 'excellent';
+    } else if (yieldRate >= 0.015) {
+        badgeText = '良好';
+        badgeClass = 'good';
+    } else {
+        badgeText = '一般';
+        badgeClass = 'normal';
+    }
+
+    badgeElement.textContent = badgeText;
+    badgeElement.className = 'result-badge ' + badgeClass;
+
+    // 显示结果区域
+    resultDiv.style.display = 'block';
+}
+
+// 显示收益率结果（旧函数，保留兼容）
 function displayYieldResult(yieldRate, formula, paybackDays, mode) {
     const resultDiv = document.getElementById('yield-result');
     const percentageElement = document.getElementById('yield-percentage');
@@ -813,8 +839,10 @@ function clearAllInputs() {
     document.getElementById('pvp-cups').value = '';
     document.getElementById('pvp-cups').placeholder = '';
 
-    // 隐藏结果区域
-    document.getElementById('yield-result').style.display = 'none';
+    // 隐藏所有结果区域
+    document.getElementById('rental-result').style.display = 'none';
+    document.getElementById('convoy-result').style.display = 'none';
+    document.getElementById('pvp-result').style.display = 'none';
 }
 
 // ==================== 市场数据管理功能 ====================
