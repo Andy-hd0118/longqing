@@ -182,7 +182,7 @@ function saveAnnouncements() {
 }
 
 function renderAnnouncements() {
-    const container = document.getElementById('announcements-container');
+    const container = document.querySelector('.announcements-list');
     
     // 如果容器不存在，直接返回
     if (!container) {
